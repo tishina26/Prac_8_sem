@@ -1,0 +1,447 @@
+\documentclass{article}
+
+
+\usepackage[T1, T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{float}
+
+
+\usepackage{hyperref} % Для создания гиперссылок
+
+
+\makeatletter
+\newcommand{\@begintheorem}[2]{\begin{trivlist}\it
+  \itemindent=\parindent
+  \item[\hspace{\labelsep}{\bf #1\ #2.}]}
+\newcommand{\@endtheorem}{\end{trivlist}}
+
+\newtheorem{testcase}{Тест}%[section]
+
+\usepackage{listings}
+\usepackage{caption}
+%\DeclareCaptionFont{white}{\color{white}} % Для белого текста, если нужно
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\dimexpr\linewidth-2\fboxsep}{\centering #1#2#3}}}
+\captionsetup[lstlisting]{format=listing, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\normalsize, % Увеличенный размер шрифта
+    breaklines=true,
+    captionpos=b,
+    %frame=single, % Рамка вокруг кода (опционально)
+    numbers=left, % Номера строк (опционально)
+    numberstyle=\tiny,
+}
+
+
+
+
+\usepackage{algorithm}
+\floatname{algorithm}{Алгоритм} % Изменяем название "Algorithm" на "Алгоритм"
+\newcommand{\algorithmicrequire}{\textbf{Входные данные:}}
+\newcommand{\algorithmicensure}{\textbf{Выходные данные:}}
+\newcommand{\algorithmicwhile}{\textbf{пока} }
+\newcommand{\algorithmicEndWhile}{\textbf{Конец цикла}}
+\newcommand{\algorithmicend}{\textbf{Конец цикла}} % Ключевое изменение
+\newcommand{\algorithmicdo}{\textbf{выполняй}} % Ключевое изменение
+\newcommand{\algorithmicfor}{\textbf{для}}
+\newcommand{\algorithmicendfor}{\textbf{Конец цикла}} % И здесь тоже
+\newcommand{\algorithmicreturn}{\textbf{Вернуть} }
+\usepackage{algpseudocode}
+
+\title{Отчет по решению задачи оптимизации методом Франка-Вульфа}
+\author{Тишина Ульяна}
+\date{\today} % Можно указать конкретную дату, если нужно
+
+\usepackage[russian]{datetime2}
+%\date{18 марта 2025 г.} % Или любой другой нужный формат
+
+
+\begin{document}
+
+%\selectlanguage{russian} % Выбираем русский язык перед \maketitle
+\maketitle
+
+\renewcommand{\contentsname}{Содержание} % Переопределяем название содержания
+
+\newpage
+\tableofcontents
+
+
+\newpage
+\section{Постановка задачи}
+  $ $
+  
+% \addcontentsline{toc}{section}{Постановка задачи}
+Рассмотрим задачу оптимизации:
+\begin{equation}
+f(x)  \rightarrow min,
+\end{equation}
+где f(x) - нелинейная функция нескольких переменных,
+
+с линейными ограничениями:
+\begin{equation}
+\begin{array}{c}
+A * x \ge b,\\
+A\_eq * x = b\_eq
+\end{array}
+\end{equation}
+
+\section{Метод Франка-Вульфа}
+$ $
+
+Метод Франка - Вульфа применяется для задач с нелинейной целевой функцией и линейными ограничениями. Метод основан на разложении нелинейной функции общего вида в ряд Тейлора до членов первого порядка в окрестности некоторой точки.
+
+
+\begin{algorithm}
+\caption{Метод Франка-Вульфа}
+\begin{algorithmic}[1]
+\Require $f(x)$, $x^0$, ограничения, критерии выхода
+\State $k \gets 0$
+\While{Критерии выхода не выполнены}
+    \State вычислить градиент: $\nabla f(x^k) = \left(\frac{\partial f(x^k)}{\partial x_1}, \dots, \frac{\partial f(x^k)}{\partial x_n}\right)$;
+    \State составить линейную целевую функцию: $F_k(y) = \nabla f(x^k) \cdot y \rightarrow \min$;
+    \State решить ЗЛП с ограничениями (например, симплекс-методом), получить $y^k$;
+    \State найти минимум функции $f(x^{k+1}) \rightarrow min,$
+где $x^{k+1} = x^k + h^k (y^k - x^k)$, 
+$h^k \in (0, 1),$
+применив, например, метод золотого сечения;
+    \State $x^{k+1} \gets x^k + h^k (y^k - x^k)$;
+    \State $k \gets k + 1$.
+\EndWhile
+\State \Return $x^k$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+\newpage
+\section{Проверка корректности реализации алгоритма}
+$  $
+
+Для проверки работы алгоритма будем использовать библиотеку scipy.optimize. В ней есть функция minimize, которая находит решение задачи оптимизации с нелинейной или линейной целевой функцией с нелинейными и/или линейными ограничениями-равенствами и/или ограничениями-неравенствами.
+
+Сравним результат работы реализованного алгоритма Франка-Вульфа и функции минимазации из библиотеки: найденные значения целевой функции, количество итераций и статус завершения.
+
+В реализации алгоритма Франка-Вульфа успешному завершению соответствует статус 0, не успешному статус -1. В библиотечной функции успеху также соответствует статус 0, а неуспешному - другое число, значение которого можно найти в документации библиотеки.
+
+В таблицах представлены результаты двух алгоритмов и последний столбец - сравнение этих результатов следующим  образом: 
+\begin{itemize}
+\item
+разница значений целевой функции (должна быть меньше заданной точности);
+\item
+сравнение кол-ва итераций: у какого метода меньше, тот метод лучше (будем писать для метода Франка-Вульфа (Ф-В): Ф-В лучше или хуже);
+\item
+сравнение статусов алгоритмов: если оба алгоритма завершились успехом, то запишем 0, иначе -1.
+\end{itemize}
+
+
+
+% Пример 1
+\begin{testcase} \label{TestCase1} \em
+Рассмотрим задачу оптимизации \cite[пример 1]
+
+\begin{equation}
+  \begin{array}{c}
+  f(x) = x_1^{0.25} + (\frac{x_2}{x_1})^{0.25} + (\frac{64}{x_2})^{0.25} \rightarrow min,\\
+   x_1 \ge 1, \\
+   x_2-x_1 \ge 0, \\
+   -x_2 \ge -64.
+  \end{array}
+\end{equation}
+
+\begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+         & Метод Франка-Вульфа & Минимизация & Сравнение \\
+        \hline
+        F & 4.242641 & 4.242641 & 0 \\
+        \hline
+        x & [3.999938, 15.999251] & [3.999027, 16.004494] & - \\
+        \hline
+        Количество итераций & 13 & 18 & Ф-В лучше \\
+        \hline
+        Статус & 0 & 0 & 0 \\
+        \hline
+    \end{tabular}
+    \caption{\ref{TestCase1}, $x_0~=~(2,~10)$, \varepsilon~=~0.001.}
+    \end{center}
+\end{table}
+
+\end{testcase}
+
+\newpage
+
+% Пример 2
+\begin{testcase} \label{TestCase2} \em
+Рассмотрим задачу оптимизации \cite[пример 2]
+
+\begin{equation}
+  \begin{array}{c}
+  f(x) = (x_1-1)^2 + 2(x_2-1)^2-3 \rightarrow min,\\
+   -x_1-x_2 \ge -8, \\
+   -2 x_1+x_2 \ge -12, \\
+   x_1 \ge 0, \\
+   x_2 \ge 0.
+  \end{array}
+\end{equation}
+
+\begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+         & Метод Франка-Вульфа & Минимизация & Сравнение \\
+        \hline
+        F & -3.0 & -3.0 & 0 \\
+        \hline
+        x & [0.999987, 0.999818] & [1.000000, 1.000000] & - \\
+        \hline
+        Количество итераций & 5 & 3 & Ф-В хуже \\
+        \hline
+        Статус & 0 & 0 & 0 \\
+        \hline
+    \end{tabular}
+    \caption{\ref{TestCase2}, $x_0~=~(0,~0)$, \varepsilon~=~0.001.}
+    \end{center}
+\end{table}
+
+\end{testcase}
+
+
+
+% Пример 3
+\begin{testcase} \label{TestCase3} \em
+Рассмотрим задачу оптимизации \cite[пример 3]
+
+\begin{equation}
+  \begin{array}{c}
+  f(x) = -(-x_1^2 + x_1x_2 - 2x_2^2 + 4x_1 + 6x_2) \rightarrow min,\\
+   -x_1 - x_2 \ge -4, \\
+   x_1 + 2x_2 \ge 2, \\
+   x_1 \ge 0,\\
+   x_2 \ge 0. \\
+  \end{array}
+\end{equation}
+
+\begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+         & Метод Франка-Вульфа & Минимизация & Сравнение \\
+        \hline
+        F & -12.25 & -12.25 & 0 \\
+        \hline
+        x & [2.250000, 1.750000] & [2.250000, 1.750000] & - \\
+        \hline
+        Количество итераций & 1 & 2 & Ф-В лучше \\
+        \hline
+        Статус & 0 & 0 & 0 \\
+        \hline
+    \end{tabular}
+    \caption{\ref{TestCase3}, $x_0~=~(3,~1)$, \varepsilon~=~0.001.}
+    \end{center}
+\end{table}
+
+\end{testcase}
+
+\newpage
+
+% Пример 4
+\begin{testcase} \label{TestCase4} \em
+Рассмотрим задачу оптимизации \cite[пример 4]
+
+\begin{equation}
+  \begin{array}{c}
+  f(x) = sin(x_1) + cos(x_2^2)\rightarrow min,\\
+   -x_1 - x_2 \ge -4, \\
+   2x_1+5x_2 \ge 1, \\
+   x_1 \ge 0,\\
+   x_2 \ge 0.\\
+  \end{array}
+\end{equation}
+
+\begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+         & Метод Франка-Вульфа & Минимизация & Сравнение \\
+        \hline
+        F & -0.999992 & -1.0 &  0.000008\\
+        \hline
+        x & [0.000008, 1.772453] & [0.000000, 3.963327] & - \\
+        \hline
+        Количество итераций & 14 & 6 & Ф-В хуже \\
+        \hline
+        Статус & 0 & 0 & 0 \\
+        \hline
+    \end{tabular}
+    \caption{\ref{TestCase4}, $x_0~=~(0.1,~0.1)$, \varepsilon~=~0.0001.}
+    \end{center}
+\end{table}
+
+\end{testcase}
+
+Во всех примерах значение функции найдено успешно, алгоритм работает корректно, с заданной точностью.
+
+\newpage
+
+\section*{Список литературы}
+\addcontentsline{toc}{section}{Список литературы}
+
+
+\begin{enumerate}
+    \item Лобанов В.С. Метод линеаризации для задач условной оптимизации. Алгоритм Франка-Вульфа. \url{https://moluch.ru/archive/293/66414/}
+    \item Алгоритм Франка-Вульфа. (пример1) \url{https://math.semestr.ru/optim/frank.php}
+    \item Алгоритм Франка-Вульфа. (пример2)  \url{https://studfile.net/preview/7775095/page:30/}
+    \item Алгоритм Франка-Вульфа. (пример3) \url{https://www.matburo.ru/ex_mp.php?p1=mpnp}
+\end{enumerate}
+
+\newpage
+\section*{Приложение}
+\addcontentsline{toc}{section}{Приложение}%
+Реализация метода Франка-Вульфа:
+\begin{lstlisting}
+def frank_wolf(fi, x0, A, b, A_eq, b_eq, max_iter, eps, view=0):
+   xk = x0
+   k = 0
+   opt = {'k': 0,
+          'x': x0,
+          'f': 0,
+          'status': -1}
+
+   while (k <= max_iter):
+      df = my_grad(fi, xk)
+      if view: print(f'grad(x{k}) = {df}')
+
+      # minimize
+      if A is None:
+          res = linprog(df, A_eq=A_eq, b_eq=b_eq)
+      else:
+          res = linprog(df, A_ub=-A, b_ub=-b, A_eq=A_eq, b_eq=b_eq)
+      yk = res.x
+      if yk is None:
+          opt['status'] = -1
+          if view: print("yk is None: ", res)
+          return opt
+      if res.status != 0:
+          opt['status'] = -1
+          if view: print("status of linprog is not 0: ", res)
+          return opt
+      if view: print(f'y{k} = {yk}')
+
+      # alpha search for xk+1 = xk + ak(yk-xk) for 0<=ak<=1
+      prev = xk
+      xk = find_xk(fi,xk,yk)
+      if view: print(f'x{k} = {xk}')
+
+      # fill opt
+      opt['k'] = k
+      opt['f'] = fi(xk)
+      opt['x'] = xk
+      k += 1
+      # break
+      if (norm(xk - prev) < eps) and (abs(fi(xk) - fi(prev)) < eps):
+          opt['status'] = 0
+          break
+   return opt
+\end{lstlisting}
+
+
+
+
+
+
+\newpage
+Реализация функции, вычисляющей производную
+\begin{lstlisting}
+def my_grad(f, x, h=1e-6):
+    grad = np.zeros_like(x)
+    for i in range(len(x)):
+    	x_plus_h = np.copy(x)
+    	x_plus_h[i] += h
+    	grad[i] = (f(x_plus_h) - f(x)) / h
+    return grad
+\end{lstlisting}
+
+
+Реализация функции золого сечения
+
+
+\begin{lstlisting}
+def find_xk(f, a,b, tol=1e-6, max_iter = 100):
+    hk = 2 - (1 + 5**0.5) / 2
+
+    x1 = a + hk * (b - a)
+    x2 = b - hk * (b - a)
+    # print(x1,x2)
+    f1 = f(x1)
+    f2 = f(x2)
+    # print(f1,f2)
+
+    for _ in range(max_iter):
+        # print(x1,x2)
+        if norm(b - a) < tol:
+            break
+        # print("f1f2",f1,f2)
+        if f1 < f2:
+            b, x2, f2 = x2, x1, f1
+            x1 = a + hk * (b - a)
+            f1 = f(x1)
+        else:
+            a, x1, f1 = x1, x2, f2
+            x2 = b - hk * (b - a)
+            f2 = f(x2)
+
+    return (a + b) / 2
+\end{lstlisting}
+
+
+\newpage
+
+Реализация функции сравнения результатов
+
+\begin{lstlisting}
+def compare_results_df(res_fw, res_min, eps=1e-3, r=4):
+    for i in range(len(res_fw)):
+        fw = res_fw[i]
+        mn = res_min[i]
+
+        fun_comparison = abs(fw['f'] - mn.fun) < eps
+
+        status_comparison = 0 if ((fw['status'] == mn.status) == 0) else -1
+
+        x_comparison = "-"
+
+        if fw['k'] == mn.nit:
+            nit_comparison = "eq"
+        elif fw['k'] > mn.nit:
+            nit_comparison = "F-W worse"
+        else:
+            nit_comparison = "F-W better"
+
+        data = {
+            "frank_wolf": [fw['f'], fw['status'], round_arr(fw['x']), fw['k']],
+            "minimize": [mn.fun, mn.status, round_arr(mn.x), mn.nit],
+            "delta": [fun_comparison, status_comparison, x_comparison, nit_comparison]
+        }
+
+        df = pd.DataFrame(data, index=["f", "status", "x", "nit"])
+
+        print(f"\nПример {i+1}:")
+        print(df)
+\end{lstlisting}
+
+
+
+
+
+
+
+\end{document}
